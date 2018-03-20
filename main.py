@@ -13,7 +13,7 @@ from sklearn import metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 object_file = os.path.join(dir_path, 'mappingbased_objects_en.ttl')
-corpus_file = os.path.join(dir_path, 'wiki2')
+corpus_file = os.path.join(dir_path, 'wiki_data/wiki2')
 analogy_file = os.path.join(dir_path, 'questions-words.txt')
 
 flags = tf.flags
@@ -120,7 +120,7 @@ def build_t_dataset(corpus_file, mincount):
     The universal embedding: [entities, words].
     So the start index of words is ent_eize.
     """
-    with open(corpus_file) as f:
+    with open(corpus_file, mode='r', encoding='utf_32') as f:
         words = f.read().split()
     # unique words
     count = Counter(words)
@@ -296,6 +296,7 @@ t_word_index = 0
 aa_word_index = 0
 ng_index = 0
 with tf.Session() as sess:
+    print(11111111111111111111111)
     pTransE = pTransE(config, sess)
     for times in range(config.epochs_to_train):
         np.random.shuffle(knowledge_batches)
@@ -323,19 +324,19 @@ with tf.Session() as sess:
             aw, av = generate_AA_batch(entity_id, id_word, config.batch_size, 
                 config.window_size, corpus_size)
             loss = pTransE.batch_fit(h, t, r, w, v, ah, at, ar, aw, av)
-        if times % config.statistics_interval == 0:
-            print(loss)
-            # top 20 results
-            ana_question = np.asarray(ana_question)
-            q_batch = random.sample(range(0, q_size), 30)
-            a = ana_question[:, 0][q_batch]
-            b = ana_question[:, 1][q_batch]
-            c = ana_question[:, 2][q_batch]
-            d = ana_question[:, 3][q_batch]
-            d_pred = pTransE.analogy(a, b, c)
-            acc = metrics.accuracy_score(d, d_pred[:, 0])
-            print('top1 acc:', acc)
-            acc_count = 0
+            if times % config.statistics_interval == 0:
+                print(loss)
+                # top 20 results
+                ana_question = np.asarray(ana_question)
+                q_batch = random.sample(range(0, q_size), 30)
+                a = ana_question[:, 0][q_batch]
+                b = ana_question[:, 1][q_batch]
+                c = ana_question[:, 2][q_batch]
+                d = ana_question[:, 3][q_batch]
+                d_pred = pTransE.analogy(a, b, c)
+                acc = metrics.accuracy_score(d, d_pred[:, 0])
+                print('top1 acc:', acc)
+                acc_count = 0
             for i in range(10):
                 if d[i] in d_pred[i, :]:
                   acc_count += 1
